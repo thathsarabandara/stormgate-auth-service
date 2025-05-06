@@ -15,7 +15,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,11 +39,6 @@ public class User {
     @NotBlank(message = "Email is required" )
     @Column(nullable=false, unique=true)
     private String email;
-
-    @NotBlank(message = "Email is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
-    @Column(nullable= false , unique=true)
-    private String password;
 
     @Column(nullable = false , columnDefinition= "BOOLEAN DEFAULT FALSE")
     @Builder.Default
