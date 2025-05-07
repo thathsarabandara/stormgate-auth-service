@@ -18,10 +18,9 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: auth-service
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
         options: >-
           --health-cmd="mysqladmin ping -h localhost"
           --health-interval=10s
