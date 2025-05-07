@@ -26,7 +26,7 @@ jobs:
           --health-cmd="mysqladmin ping -h localhost"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=20  # Increased retries for MySQL
 
       redis:
         image: redis:latest
@@ -50,7 +50,7 @@ jobs:
           --health-cmd="kafka-topics --zookeeper zookeeper:2181 --list"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=20  # Increased retries for Kafka
 
       zookeeper:
         image: bitnami/zookeeper:latest
@@ -60,7 +60,7 @@ jobs:
           --health-cmd="echo ruok | nc localhost 2181 | grep imok"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=20  # Increased retries for Zookeeper
 
     steps:
       - name: Checkout source code
@@ -92,4 +92,4 @@ jobs:
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           SPRING_REDIS_HOST: redis
           SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}  # Using the secret
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
