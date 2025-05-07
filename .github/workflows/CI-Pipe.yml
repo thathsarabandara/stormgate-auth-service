@@ -1,0 +1,43 @@
+name: StormGate auth-microservice CI Workflow
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.9.6-eclispse-termurin-21
+      options: --user root
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD:  rootpass
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: test_user
+          MYSQL_PASSWORD: testpass
+        options: 
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@v4
+
+      - name: Build with Maven 
+        uses: mvn clean install
+      
+      - name: Lint with chekstyle
+        uses: mvn checkstyle:check
+
+      - name: Lint with PMD
+        uses:  mvn pmd:check 
