@@ -35,7 +35,7 @@ jobs:
           --health-cmd="redis-cli ping"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=20
 
       kafka:
         image: bitnami/kafka:latest
@@ -50,11 +50,6 @@ jobs:
         image: bitnami/zookeeper:latest
         ports:
           - 2181:2181
-        options: >-
-          --health-cmd="echo ruok | nc localhost 2181 | grep imok"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=20
 
     steps:
       - name: Checkout source code
