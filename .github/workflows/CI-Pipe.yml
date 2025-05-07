@@ -49,7 +49,7 @@ jobs:
           --health-cmd="kafka-topics --zookeeper zookeeper:2181 --list"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=20  # Increased retries for Kafka
+          --health-retries=20
 
       zookeeper:
         image: bitnami/zookeeper:latest
