@@ -1,43 +1,140 @@
-name: StormGate auth-microservice CI Workflow
+name: CI Build
 
-on: 
+on:
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: maven:3.9.6-eclipse-temurin-21
-      options: --user root
+
     services:
       mysql:
         image: mysql:8.0
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD:  rootpass
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: test_user
-          MYSQL_PASSWORD: testpass
-        options: 
-          --health-cmd="mysqladmin ping -h localhost"
+          MYSQL_DATABASE: auth-service
+          MYSQL_USER: root
+          MYSQL_PASSWORD: password
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=20
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+      zookeeper:
+        image: bitnami/zookeeper:latest
+        ports:
+          - 2181:2181
+        env:
+          ALLOW_ANONYMOUS_LOGIN: "yes"
+        options: >-
+          --health-cmd="echo ruok | nc 127.0.0.1 2181 | grep imok"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+      kafka:
+        image: bitnami/kafka:latest
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+        options: >-
+          --health-cmd="echo > /dev/tcp/127.0.0.1/9092"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
 
     steps:
-      - name: checkout the code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Build with Maven 
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 24
+
+      - name: Verify Java version
+        run: java -version
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Wait for Redis to be ready
+        run: |
+          for i in {1..30}; do
+            if redis-cli -h 127.0.0.1 ping | grep PONG; then
+              echo "Redis is up!"
+              break
+            fi
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+
+      - name: Wait for Zookeeper to be ready
+        run: |
+          for i in {1..30}; do
+            if echo ruok | nc 127.0.0.1 2181 | grep imok; then
+              echo "Zookeeper is up!"
+              break
+            fi
+            echo "Waiting for Zookeeper..."
+            sleep 2
+          done
+
+      # Kafka health check is simplified since kafka-topics.sh isn't available
+      - name: Wait for Kafka to be ready
+        run: |
+          for i in {1..30}; do
+            if timeout 1 bash -c "</dev/tcp/127.0.0.1/9092" ; then
+              echo "Kafka is up!"
+              break
+            fi
+            echo "Waiting for Kafka..."
+            sleep 2
+          done
+
+      - name: Install dependencies with Maven
         run: mvn clean install
-      
-      - name: Lint with chekstyle
+
+      - name: Lint with Checkstyle
         run: mvn checkstyle:check
 
       - name: Lint with PMD
-        run:  mvn pmd:check 
+        run: mvn pmd:check
+
+      - name: Run unit tests
+        run: mvn test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth-service
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_REDIS_HOST: 127.0.0.1
+          SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
