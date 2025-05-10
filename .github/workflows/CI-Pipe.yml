@@ -19,10 +19,10 @@ jobs:
           - 3306:3306
         env:
           MYSQL_DATABASE: auth-service
-          MYSQL_USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          MYSQL_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          MYSQL_USER: root
+          MYSQL_PASSWORD: password
         options: >-
-          --health-cmd="mysqladmin ping -h localhost"
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -44,7 +44,7 @@ jobs:
         env:
           ALLOW_ANONYMOUS_LOGIN: "yes"
         options: >-
-          --health-cmd="echo ruok | nc localhost 2181 | grep imok"
+          --health-cmd="echo ruok | nc 127.0.0.1 2181 | grep imok"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -54,10 +54,10 @@ jobs:
         ports:
           - 9092:9092
         env:
-          KAFKA_CFG_ZOOKEEPER_CONNECT: localhost:2181
-          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
         options: >-
-          --health-cmd="kafka-topics.sh --bootstrap-server localhost:9092 --list"
+          --health-cmd="echo > /dev/tcp/127.0.0.1/9092"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -78,7 +78,7 @@ jobs:
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h127.0.0.1 -u${{ secrets.SPRING_DATASOURCE_USERNAME }} -p${{ secrets.SPRING_DATASOURCE_PASSWORD }} --silent; then
+            if mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent; then
               echo "MySQL is up!"
               break
             fi
@@ -108,10 +108,11 @@ jobs:
             sleep 2
           done
 
+      # Kafka health check is simplified since kafka-topics.sh isn't available
       - name: Wait for Kafka to be ready
         run: |
           for i in {1..30}; do
-            if kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list; then
+            if timeout 1 bash -c "</dev/tcp/127.0.0.1/9092" ; then
               echo "Kafka is up!"
               break
             fi
@@ -132,8 +133,8 @@ jobs:
         run: mvn test
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth-service
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: password
           SPRING_REDIS_HOST: 127.0.0.1
-          SPRING_KAFKA_BOOTSTRAP_SERVERS: 127.0.0.1:9092
+          SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
           SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
