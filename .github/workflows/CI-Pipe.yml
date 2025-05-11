@@ -108,7 +108,6 @@ jobs:
             sleep 2
           done
 
-      # Kafka health check is simplified since kafka-topics.sh isn't available
       - name: Wait for Kafka to be ready
         run: |
           for i in {1..30}; do
