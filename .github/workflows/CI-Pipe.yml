@@ -19,10 +19,9 @@ jobs:
           - 3306:3306
         env:
           MYSQL_DATABASE: auth-service
-          MYSQL_USER: root
-          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: password
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -88,5 +87,4 @@ jobs:
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: password
           SPRING_REDIS_HOST: 127.0.0.1
-          SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
           SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
