@@ -87,7 +87,7 @@ jobs:
         run: mvn test
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth-service
-          SPRING_DATASOURCE_USERNAME: ${{secret.SPRING_DATASOURCE_USERNAME}}
-          SPRING_DATASOURCE_PASSWORD: ${{secret.SPRING_MAIL_PASSWORD}}
+          SPRING_DATASOURCE_USERNAME: ${{secrets.SPRING_DATASOURCE_USERNAME}}
+          SPRING_DATASOURCE_PASSWORD: ${{secrets.SPRING_MAIL_PASSWORD}}
           SPRING_REDIS_HOST: 127.0.0.1
           SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
