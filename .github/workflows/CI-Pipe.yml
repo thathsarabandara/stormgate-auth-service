@@ -1,43 +1,93 @@
-name: StormGate auth-microservice CI Workflow
+name: CI Build
 
-on: 
+on:
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: maven:3.9.6-eclipse-temurin-21
-      options: --user root
+
     services:
       mysql:
         image: mysql:8.0
         ports:
           - 3306:3306
         env:
-          MYSQL_ROOT_PASSWORD:  rootpass
-          MYSQL_DATABASE: testdb
-          MYSQL_USER: test_user
-          MYSQL_PASSWORD: testpass
-        options: 
-          --health-cmd="mysqladmin ping -h localhost"
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DATABASE: auth_service
+          MYSQL_USER: ${{secrets.SPRING_DATASOURCE_USERNAME}}
+          MYSQL_PASSWORD: ${{secrets.SPRING_DATASOURCE_PASSWORD}}
+          MYSQL_ROOT_PASSWORD: root
+        options: >-
+          --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=20
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
 
     steps:
-      - name: checkout the code
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Build with Maven 
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 24
+
+      - name: Verify Java version
+        run: java -version
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Wait for Redis to be ready
+        run: |
+          for i in {1..30}; do
+            if redis-cli -h 127.0.0.1 ping | grep PONG; then
+              echo "Redis is up!"
+              break
+            fi
+            echo "Waiting for Redis..."
+            sleep 2
+          done
+
+      - name: Install dependencies with Maven
         run: mvn clean install
-      
-      - name: Lint with chekstyle
+
+      - name: Lint with Checkstyle
         run: mvn checkstyle:check
 
       - name: Lint with PMD
-        run:  mvn pmd:check 
+        run: mvn pmd:check
+
+      - name: Run unit tests
+        run: mvn test
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth-service
+          SPRING_DATASOURCE_USERNAME: ${{secret.SPRING_DATASOURCE_USERNAME}}
+          SPRING_DATASOURCE_PASSWORD: ${{secret.SPRING_MAIL_PASSWORD}}
+          SPRING_REDIS_HOST: 127.0.0.1
+          SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
