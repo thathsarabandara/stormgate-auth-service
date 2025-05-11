@@ -18,10 +18,13 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_DATABASE: auth-service
-          MYSQL_ROOT_PASSWORD: password
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DATABASE: auth_service
+          MYSQL_USER: ${{secrets.SPRING_DATASOURCE_USERNAME}}
+          MYSQL_PASSWORD: ${{secrets.SPRING_DATASOURCE_PASSWORD}}
+          MYSQL_ROOT_PASSWORD: root
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword"
+          --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -84,7 +87,7 @@ jobs:
         run: mvn test
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth-service
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_DATASOURCE_USERNAME: ${{secret.SPRING_DATASOURCE_USERNAME}}
+          SPRING_DATASOURCE_PASSWORD: ${{secret.SPRING_MAIL_PASSWORD}}
           SPRING_REDIS_HOST: 127.0.0.1
           SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
