@@ -18,13 +18,12 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MYSQL_HOST: 127.0.0.1
           MYSQL_DATABASE: auth_service
-          MYSQL_USER: ${{secrets.SPRING_DATASOURCE_USERNAME}}
-          MYSQL_PASSWORD: ${{secrets.SPRING_DATASOURCE_PASSWORD}}
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          MYSQL_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: rootpassword
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mysqladmin ping -uroot -prootpassword --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=20
@@ -49,13 +48,20 @@ jobs:
           distribution: temurin
           java-version: 24
 
+      - name: Set up the Maven dependencies caching
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
       - name: Verify Java version
         run: java -version
 
       - name: Wait for MySQL to be ready
         run: |
           for i in {1..30}; do
-            if mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent; then
+            if mysqladmin ping -h 127.0.0.1 -uroot -prootpassword --silent; then
               echo "MySQL is up!"
               break
             fi
@@ -86,8 +92,8 @@ jobs:
       - name: Run unit tests
         run: mvn test
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth-service
-          SPRING_DATASOURCE_USERNAME: ${{secrets.SPRING_DATASOURCE_USERNAME}}
-          SPRING_DATASOURCE_PASSWORD: ${{secrets.SPRING_MAIL_PASSWORD}}
+          SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/auth_service
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           SPRING_REDIS_HOST: 127.0.0.1
           SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
