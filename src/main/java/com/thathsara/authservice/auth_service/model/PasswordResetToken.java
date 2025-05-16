@@ -51,7 +51,7 @@ public class PasswordResetToken {
 
     @PrePersist
     public void PrePersist() {
-        if (expiredAt == null){
+        if (expiredAt == null) {
             expiredAt = LocalDateTime.now().plusHours(2);
         }
     }
