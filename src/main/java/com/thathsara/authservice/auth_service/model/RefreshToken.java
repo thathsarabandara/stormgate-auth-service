@@ -21,12 +21,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "password_reset_tokens")
+@Table(name = "refresh_tokens")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PasswordResetToken {
+public class RefreshToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,9 +37,14 @@ public class PasswordResetToken {
 
     @NotBlank
     @Column(nullable = false, length = 225)
-    private String resetToken;
+    private String refreshToken;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Builder.Default
+    private boolean is_revoked = false;
+
+     @Column(nullable = false)
     private LocalDateTime expiredAt;
 
     @CreationTimestamp
@@ -55,4 +60,5 @@ public class PasswordResetToken {
             expiredAt = LocalDateTime.now().plusHours(2);
         }
     }
+
 }
