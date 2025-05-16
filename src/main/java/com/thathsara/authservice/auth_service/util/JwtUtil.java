@@ -52,7 +52,7 @@ public class JwtUtil {
     }
 
     private SecretKeySpec getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        final byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.getJcaName());
     }
 }
