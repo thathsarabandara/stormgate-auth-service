@@ -35,6 +35,10 @@ public class User {
     @Column(nullable = false)
     private Long tenantID;
 
+    @Column(nullable = false)
+    @NotBlank()
+    private String username;
+
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required" )
     @Column(nullable = false, unique = true)
