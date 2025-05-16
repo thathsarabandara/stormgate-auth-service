@@ -31,7 +31,6 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "invalid tenant id")
     @Column(nullable = false)
     private Long tenantID;
 
