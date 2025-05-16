@@ -7,13 +7,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thathsara.authservice.auth_service.dto.RegisterRequest;
+import com.thathsara.authservice.auth_service.util.TenantContext;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@ModelAttribute RegisterRequest request) {
-        System.out.println("Regiester request recieved: " + request);
+        System.out.println("Regiester request recieved: " + request + TenantContext.getTenantId());
         return ResponseEntity.ok("user registered");
     }
 }

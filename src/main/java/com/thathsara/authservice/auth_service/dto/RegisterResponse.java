@@ -1,9 +1,15 @@
 package com.thathsara.authservice.auth_service.dto;
 
-import lombok.Data;
+import com.thathsara.authservice.auth_service.model.User;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class RegisterResponse {
-    private String verifyToken;
+    private User user;
     private String message;
 }

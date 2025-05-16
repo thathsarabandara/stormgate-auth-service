@@ -8,17 +8,24 @@ import com.thathsara.authservice.auth_service.dto.RegisterResponse;
 import com.thathsara.authservice.auth_service.exception.CustomException;
 import com.thathsara.authservice.auth_service.model.User;
 import com.thathsara.authservice.auth_service.repository.UserRepository;
+import com.thathsara.authservice.auth_service.util.TenantContext;
 
 @Service
 public class RegisterService {
     @Autowired private UserRepository userRepository;
 
     public RegisterResponse register(RegisterRequest request) {
-        if(userRepository.existsByEmail(request.getEmail())) {
-            throw  new CustomException("Email already in use");
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new CustomException("Email already in use");
         }
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setTenantID(request.get);
+
+        final User user = User.builder()
+                        .email(request.getEmail())
+                        .username(request.getUsername())
+                        .tenantID(TenantContext.getTenantId())
+                        .build();
+
+        return new RegisterResponse(user, "registered successfully");
     }
 }
