@@ -31,9 +31,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "invalid tenant id")
     @Column(nullable = false)
     private Long tenantID;
+
+    @Column(nullable = false)
+    @NotBlank()
+    private String username;
 
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required" )
