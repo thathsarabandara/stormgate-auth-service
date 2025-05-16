@@ -1,5 +1,8 @@
 package com.thathsara.authservice.auth_service.service;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -8,14 +11,19 @@ import com.thathsara.authservice.auth_service.dto.RegisterResponse;
 import com.thathsara.authservice.auth_service.exception.CustomException;
 import com.thathsara.authservice.auth_service.model.User;
 import com.thathsara.authservice.auth_service.model.UserPassword;
+import com.thathsara.authservice.auth_service.model.VerificationToken;
 import com.thathsara.authservice.auth_service.repository.UserPasswordRepository;
 import com.thathsara.authservice.auth_service.repository.UserRepository;
+import com.thathsara.authservice.auth_service.util.JwtUtil;
+import com.thathsara.authservice.auth_service.util.OTPUtil;
+import com.thathsara.authservice.auth_service.util.PasswordUtils;
 import com.thathsara.authservice.auth_service.util.TenantContext;
 
 @Service
 public class RegisterService {
     @Autowired private UserRepository userRepository;
     @Autowired private UserPasswordRepository userPasswordRepository;
+    @Autowired private JwtUtil jwtUtil;
 
     public RegisterResponse register(RegisterRequest request) {
 
@@ -33,14 +41,25 @@ public class RegisterService {
 
         userRepository.save(user);
 
+        final String hashedPassword = PasswordUtils.hashedPassword(request.getPassword());
+
 
         final UserPassword userPassword = UserPassword.builder()
                                         .user(user)
-                                        .password(request.getPassword())
+                                        .password(hashedPassword)
                                         .isActive(true)
                                         .build();
 
         userPasswordRepository.save(userPassword);
+
+        final String token = jwtUtil.generateToken(user.getId());
+        final String otp = OTPUtil.generateOTP();
+
+        final VerificationToken verificationToken = VerificationToken.builder()
+                                                    .verifyToken(token)
+                                                    .otp(otp)
+                                                    .expiredAt(LocalDateTime.now().plusMinutes(10))
+                                                    .build();
 
         return new RegisterResponse("registered successfully");
     }
