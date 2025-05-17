@@ -31,7 +31,7 @@ public class LoginService {
     @Autowired private AuthTokenRepository authTokenRepository;
     @Autowired private RefreshTokenRepository refreshTokenRepository;
     @Autowired private JwtUtil jwtUtil;
-    @Autowired private PasswordUtils PasswordUtils;
+    @Autowired private PasswordUtils passwordUtils;
 
     @Transactional
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
@@ -52,7 +52,7 @@ public class LoginService {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new LoginResponse(null, null, null, "Account not active or verified"));
             }
-            final boolean isValid = PasswordUtils.verifyPassword(request.getPassword(), password.get().getPassword());
+            final boolean isValid = passwordUtils.verifyPassword(request.getPassword(), password.get().getPassword());
 
             if (!isValid) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
