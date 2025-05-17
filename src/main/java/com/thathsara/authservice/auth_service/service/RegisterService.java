@@ -1,7 +1,6 @@
 package com.thathsara.authservice.auth_service.service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import com.thathsara.authservice.auth_service.model.UserPassword;
 import com.thathsara.authservice.auth_service.model.VerificationToken;
 import com.thathsara.authservice.auth_service.repository.UserPasswordRepository;
 import com.thathsara.authservice.auth_service.repository.UserRepository;
+import com.thathsara.authservice.auth_service.repository.VerificationTokenRepository;
 import com.thathsara.authservice.auth_service.util.JwtUtil;
 import com.thathsara.authservice.auth_service.util.OTPUtil;
 import com.thathsara.authservice.auth_service.util.PasswordUtils;
@@ -24,6 +24,8 @@ public class RegisterService {
     @Autowired private UserRepository userRepository;
     @Autowired private UserPasswordRepository userPasswordRepository;
     @Autowired private JwtUtil jwtUtil;
+    @Autowired private VerificationTokenRepository verificationTokenRepository;
+    @Autowired private MailService mailService;
 
     public RegisterResponse register(RegisterRequest request) {
 
@@ -61,6 +63,10 @@ public class RegisterService {
                                                     .expiredAt(LocalDateTime.now().plusMinutes(10))
                                                     .build();
 
-        return new RegisterResponse("registered successfully");
+        verificationTokenRepository.save(verificationToken);
+
+        mailService.sendOtpEmail(request.getEmail(), "StormGate OTP Service - Don't Reply", otp);
+
+        return new RegisterResponse(token,"registered successfully");
     }
 }

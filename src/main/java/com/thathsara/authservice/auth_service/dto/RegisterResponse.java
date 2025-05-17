@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class RegisterResponse {
+    private String verifyToken;
     private String message;
 }
