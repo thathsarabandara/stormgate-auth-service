@@ -58,6 +58,7 @@ public class RegisterService {
         final String otp = OTPUtil.generateOTP();
 
         final VerificationToken verificationToken = VerificationToken.builder()
+                                                    .user(user)
                                                     .verifyToken(token)
                                                     .otp(otp)
                                                     .expiredAt(LocalDateTime.now().plusMinutes(10))
@@ -67,6 +68,6 @@ public class RegisterService {
 
         mailService.sendOtpEmail(request.getEmail(), "StormGate OTP Service - Don't Reply", otp);
 
-        return new RegisterResponse(token,"registered successfully");
+        return new RegisterResponse(token , "registered successfully");
     }
 }
