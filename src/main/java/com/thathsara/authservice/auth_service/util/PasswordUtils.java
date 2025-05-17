@@ -1,7 +1,8 @@
 package com.thathsara.authservice.auth_service.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-
+import org.springframework.stereotype.Component;
+@Component
 public class PasswordUtils {
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
