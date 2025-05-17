@@ -2,14 +2,12 @@ package com.thathsara.authservice.auth_service.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
 @AllArgsConstructor
-@NoArgsConstructor
-public class AuthResponse {
+@Data
+public class LoginResponse {
     private String authToken;
     private String refreshToken;
-    private Long userId;
+    private Long userid;
     private String message;
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class ChangePasswordRequest {
-    private String newPassword;
+public class OtpResendResponse {
+    private String verifyToken;
+    private String message;
 }

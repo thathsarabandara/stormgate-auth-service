@@ -14,7 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,14 +34,12 @@ public class RefreshToken {
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 
-    @NotBlank
-    @Column(nullable = false, length = 225)
+    @Column(nullable = false, length = 225, unique = true)
     private String refreshToken;
 
-    @NotBlank
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     @Builder.Default
-    private boolean is_revoked = false;
+    private boolean isRevoked = false;
 
      @Column(nullable = false)
     private LocalDateTime expiredAt;
@@ -55,10 +52,11 @@ public class RefreshToken {
     private LocalDateTime updatedAt;
 
     @PrePersist
-    public void PrePersist() {
+    public void prePersist() {
         if (expiredAt == null) {
             expiredAt = LocalDateTime.now().plusHours(2);
         }
     }
+
 
 }

@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -26,6 +28,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserPassword {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @ManyToOne
@@ -34,7 +37,7 @@ public class UserPassword {
 
     @NotBlank(message = "Email is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
-    @Column(nullable = false , unique = true)
+    @Column(nullable = false )
     private String password;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
