@@ -33,20 +33,19 @@ public class ForgotPasswordService {
     @Autowired private UserPasswordRepository userPasswordRepository;
     @Autowired private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired private MailService mailService;
-    @Autowired private PasswordUtils passwordUtils;
     @Autowired private JwtUtil jwtUtil;
 
     @Transactional
     public ResponseEntity<ForgotPasswordResponse> forgotPassword(ForgotPasswordRequest request) {
         try {
-            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+            final Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ForgotPasswordResponse(null , "No account registered with this email."));
             }
 
-            User user = userOpt.get();
+            final User user = userOpt.get();
 
             if (!user.isVerified()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -54,11 +53,11 @@ public class ForgotPasswordService {
             }
 
             // Generate Reset Token and OTP
-            String resetToken = jwtUtil.generateToken(user.getId());
-            String otp = OTPUtil.generateOTP();
+            final String resetToken = jwtUtil.generateToken(user.getId());
+            final String otp = OTPUtil.generateOTP();
 
             // Save PasswordResetToken
-            PasswordResetToken passwordResetToken = PasswordResetToken.builder()
+            final PasswordResetToken passwordResetToken = PasswordResetToken.builder()
                     .user(user)
                     .resetToken(resetToken)
                     .resetOtp(otp)
@@ -71,7 +70,8 @@ public class ForgotPasswordService {
             mailService.sendOtpEmail(user.getEmail(), 
             "StormGate-AuthService -Password Reset OTP Service - Don't Reply", otp, "password_reset");
 
-            return ResponseEntity.ok(new ForgotPasswordResponse(resetToken ,"Reset token and OTP sent to your email."));
+            return ResponseEntity.ok(
+                new ForgotPasswordResponse(resetToken , "Reset token and OTP sent to your email."));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -79,18 +79,19 @@ public class ForgotPasswordService {
         }
     }
     @Transactional
-    public ResponseEntity<ResetPasswordResponse> handleResetPasswordRequest(String resetToken, ResetPasswordRequest request) {
+    public ResponseEntity<ResetPasswordResponse> handleResetPasswordRequest(
+        String resetToken, ResetPasswordRequest request) {
         try {
             // Check if reset token exists
-            Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByResetToken(resetToken);
+            final Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByResetToken(resetToken);
 
             if (tokenOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ResetPasswordResponse(null, "Invalid or expired reset token."));
             }
 
-            PasswordResetToken passwordResetToken = tokenOpt.get();
-            User user = passwordResetToken.getUser();
+            final PasswordResetToken passwordResetToken = tokenOpt.get();
+            final User user = passwordResetToken.getUser();
 
             // Check if user is verified
             if (!user.isVerified()) {
@@ -109,7 +110,8 @@ public class ForgotPasswordService {
             passwordResetTokenRepository.save(passwordResetToken);
 
             // Return response
-            return ResponseEntity.ok(new ResetPasswordResponse(resetToken, "OTP verified successfully. New reset token issued."));
+            return ResponseEntity.ok(
+                new ResetPasswordResponse(resetToken, "OTP verified successfully. New reset token issued."));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -119,14 +121,14 @@ public class ForgotPasswordService {
     @Transactional
     public ResponseEntity<ChangePasswordResponse> changePassword(String resetToken, ChangePasswordRequest request) {
         try {
-            Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByResetToken(resetToken);
+            final Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByResetToken(resetToken);
 
             if (tokenOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new ChangePasswordResponse("Invalid or expired reset token."));
             }
 
-            PasswordResetToken passwordResetToken = tokenOpt.get();
+            final PasswordResetToken passwordResetToken = tokenOpt.get();
 
             // Check if OTP was verified
             if (!passwordResetToken.isOTPVerified()) {
@@ -143,23 +145,20 @@ public class ForgotPasswordService {
             // All good — deactivate token, update password
             passwordResetToken.setExpiredAt(LocalDateTime.now());
 
-            User user = passwordResetToken.getUser();
-            UserPassword oldPassword = userPasswordRepository.findTopByUserOrderByCreatedAtDesc(user);
+            final User user = passwordResetToken.getUser();
+            final Optional<UserPassword> oldPassword = userPasswordRepository.findTopByUserOrderByCreatedAtDesc(user);
 
-            oldPassword.setActive(false);
-            userPasswordRepository.save(oldPassword);
+            oldPassword.get().setActive(false);
+            userPasswordRepository.save(oldPassword.get());
 
             // Assuming you have PasswordEncoder bean injected
-            String encodedPassword = passwordUtils.hashedPassword(request.getNewPassword());
-            UserPassword newPassword = UserPassword.builder()
+            final String encodedPassword = PasswordUtils.hashedPassword(request.getNewPassword());
+            final UserPassword newPassword = UserPassword.builder()
                                         .password(encodedPassword)
                                         .isActive(true)
                                         .user(user)
                                         .build();
             userPasswordRepository.save(newPassword);
-
-            userRepository.save(user);
-            passwordResetTokenRepository.save(passwordResetToken);
 
             return ResponseEntity.ok(new ChangePasswordResponse("Password updated successfully."));
 

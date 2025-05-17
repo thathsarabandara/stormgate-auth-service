@@ -27,30 +27,30 @@ public class ResendOtpService {
     @Transactional
     public ResponseEntity<OtpResendResponse> resendOtp(String oldToken) {
         try {
-            Optional<VerificationToken> existingTokenOpt = verificationTokenRepository
+            final Optional<VerificationToken> existingTokenOpt = verificationTokenRepository
                     .findValidTokenByVerifyToken(oldToken);
 
             if (existingTokenOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new OtpResendResponse(null,"Invalid token."));
+                        .body(new OtpResendResponse(null , "Invalid token."));
             }
 
-            VerificationToken existingToken = existingTokenOpt.get();
-            User user = existingToken.getUser();
+            final VerificationToken existingToken = existingTokenOpt.get();
+            final User user = existingToken.getUser();
 
-            if(user.isVerified() == true) {
+            if (user.isVerified() == true) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new OtpResendResponse(null,"Already verified token"));
+                        .body(new OtpResendResponse(null , "Already verified token"));
             }
 
             existingToken.setExpiredAt(LocalDateTime.now());
             verificationTokenRepository.save(existingToken);
 
             // Generate new token and OTP
-            String newToken = jwtUtil.generateToken(user.getId());
-            String newOtp = OTPUtil.generateOTP();
+            final String newToken = jwtUtil.generateToken(user.getId());
+            final String newOtp = OTPUtil.generateOTP();
 
-            VerificationToken newVerificationToken = VerificationToken.builder()
+            final VerificationToken newVerificationToken = VerificationToken.builder()
                     .user(user)
                     .verifyToken(newToken)
                     .otp(newOtp)
@@ -60,14 +60,14 @@ public class ResendOtpService {
             verificationTokenRepository.save(newVerificationToken);
 
             // Send email
-           emailService.sendOtpEmail(user.getEmail(),
-           "StormGate-AuthService - OTP Service - Don't Reply" , newOtp, "verify");
+           emailService.sendOtpEmail(user.getEmail() , 
+           "StormGate-AuthService - OTP Service - Don't Reply" , newOtp , "verify");
 
             return ResponseEntity.ok(new OtpResendResponse(newToken , "OTP resent successfully."));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new OtpResendResponse(null, "Failed to resend OTP due to server error."));
+                    .body(new OtpResendResponse(null , "Failed to resend OTP due to server error."));
         }
     }
 }

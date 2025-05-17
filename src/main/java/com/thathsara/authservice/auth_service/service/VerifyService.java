@@ -30,7 +30,7 @@ public class VerifyService {
     @Autowired private JwtUtil jwtUtil;
 
     @Transactional
-    public ResponseEntity<VerifyOtpResponse> verify(String verifytoken ,VerifyOtpRequest request) {
+    public ResponseEntity<VerifyOtpResponse> verify(String verifytoken , VerifyOtpRequest request) {
         try {
             if (verifytoken == null || request.getOtp() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)

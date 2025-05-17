@@ -37,17 +37,18 @@ public class LoginService {
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
         try {
             // Check if user exists by email
-            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
+            final Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new LoginResponse(null, null, null, "Invalid credentials"));
             }
 
-            User user = userOpt.get();
-            Optional<UserPassword> password = userPasswordRepository.findTopByUserOrderByCreatedAtDesc(user);
+            final User user = userOpt.get();
+            final Optional<UserPassword> password = userPasswordRepository.findTopByUserOrderByCreatedAtDesc(user);
 
             // Validate account status
-            if (user.isVerified() == false|| !user.getStatus().equals(User.STATUS.ACTIVE) || password.get().isActive() == true ) {
+            if (user.isVerified() == false || 
+            !user.getStatus().equals(User.STATUS.ACTIVE) || password.get().isActive() == true ) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new LoginResponse(null, null, null, "Account not active or verified"));
             }
@@ -59,8 +60,8 @@ public class LoginService {
             }
 
             // Generate new AuthToken (2 hours expiry)
-            String authTokenStr = jwtUtil.generateToken(user.getId());
-            AuthToken authToken = AuthToken.builder()
+            final String authTokenStr = jwtUtil.generateToken(user.getId());
+            final AuthToken authToken = AuthToken.builder()
                     .user(user)
                     .authToken(authTokenStr)
                     .expiredAt(LocalDateTime.now().plusHours(2))
@@ -68,8 +69,8 @@ public class LoginService {
             authTokenRepository.save(authToken);
 
             // Generate new RefreshToken (3 hours expiry)
-            String refreshTokenStr = jwtUtil.generateToken(user.getId());
-            RefreshToken refreshToken = RefreshToken.builder()
+            final String refreshTokenStr = jwtUtil.generateToken(user.getId());
+            final RefreshToken refreshToken = RefreshToken.builder()
                     .user(user)
                     .refreshToken(refreshTokenStr)
                     .expiredAt(LocalDateTime.now().plusHours(3))

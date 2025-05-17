@@ -29,9 +29,9 @@ public class LogoutService {
 
             // Expire AuthToken if exists
             if (authToken != null) {
-                Optional<AuthToken> authTokenOpt = authTokenRepository.findValidTokenByAuthToken(authToken);
+                final Optional<AuthToken> authTokenOpt = authTokenRepository.findValidTokenByAuthToken(authToken);
                 if (authTokenOpt.isPresent()) {
-                    AuthToken token = authTokenOpt.get();
+                    final AuthToken token = authTokenOpt.get();
                     token.setExpiredAt(LocalDateTime.now());
                     authTokenRepository.save(token);
                     tokenUpdated = true;
@@ -40,9 +40,10 @@ public class LogoutService {
 
             // Revoke RefreshToken if exists
             if (refreshToken != null) {
-                Optional<RefreshToken> refreshTokenOpt = refreshTokenRepository.findByRefreshTokenAndIsRevoked(refreshToken, false);
+                final Optional<RefreshToken> refreshTokenOpt = refreshTokenRepository
+                .findByRefreshTokenAndIsRevoked(refreshToken, false);
                 if (refreshTokenOpt.isPresent()) {
-                    RefreshToken token = refreshTokenOpt.get();
+                    final RefreshToken token = refreshTokenOpt.get();
                     token.setRevoked(true);
                     refreshTokenRepository.save(token);
                     tokenUpdated = true;

@@ -11,12 +11,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.thathsara.authservice.auth_service.dto.AuthResponse;
 import com.thathsara.authservice.auth_service.dto.ChangePasswordRequest;
+import com.thathsara.authservice.auth_service.dto.ChangePasswordResponse;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordRequest;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordResponse;
 import com.thathsara.authservice.auth_service.dto.LogoutResponse;
 import com.thathsara.authservice.auth_service.dto.OtpResendResponse;
 import com.thathsara.authservice.auth_service.dto.RegisterRequest;
 import com.thathsara.authservice.auth_service.dto.RegisterResponse;
+import com.thathsara.authservice.auth_service.dto.ResetPasswordRequest;
+import com.thathsara.authservice.auth_service.dto.ResetPasswordResponse;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpRequest;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpResponse;
 import com.thathsara.authservice.auth_service.service.ForgotPasswordService;
@@ -55,12 +58,12 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<LogoutResponse> logout(
         @RequestHeader(value = "Authorization", required = false) String accessToken,
-        @RequestHeader(value = "Refresh-Token", required = false) String refreshToken ){
+        @RequestHeader(value = "Refresh-Token", required = false) String refreshToken ) {
         return logoutService.logout(accessToken, refreshToken);
     }
     @PostMapping("/resendotp")
     public ResponseEntity<OtpResendResponse> resendotp(
-        @RequestHeader(value = "Verify-Token", required = false) String verifyToken){
+        @RequestHeader(value = "Verify-Token", required = false) String verifyToken) {
         return resendOtpService.resendOtp(verifyToken);
     }
     @PostMapping("/forgotpassword")
@@ -68,13 +71,13 @@ public class AuthController {
         return forgotPasswordService.forgotPassword(request);
     }
     @PostMapping("/resetpasswordotpverify")
-    public ResponseEntity<VerifyOtpResponse> verifyreset(
+    public ResponseEntity<ResetPasswordResponse> verifyreset(
         @RequestHeader(value = "Reset-Token", required = true) String resetToken,
-        @ModelAttribute VerifyOtpRequest request) {
+        @ModelAttribute ResetPasswordRequest request) {
         return forgotPasswordService.handleResetPasswordRequest(resetToken, request);
     }
     @PostMapping("/changePassword")
-    public ResponseEntity<VerifyOtpResponse> changepassword(
+    public ResponseEntity<ChangePasswordResponse> changepassword(
         @RequestHeader(value = "Reset-Token", required = true) String resetToken,
         @ModelAttribute ChangePasswordRequest request) {
         return forgotPasswordService.changePassword(resetToken, request);

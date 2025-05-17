@@ -14,10 +14,10 @@ public class MailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendOtpEmail(String toEmail, String subject, String otp ,String type) {
+    public void sendOtpEmail(String toEmail, String subject, String otp , String type) {
         try {
             final MimeMessage message = mailSender.createMimeMessage();
-            final MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            final MimeMessageHelper helper = new MimeMessageHelper(message, true , "UTF-8");
 
             helper.setTo(toEmail);
             helper.setSubject(subject);

@@ -75,7 +75,7 @@ public class RegisterService {
             verificationTokenRepository.save(verificationToken);
 
             mailService.sendOtpEmail(request.getEmail(),
-                    "StormGate-AuthService - OTP Service - Don't Reply", otp,"verify");
+                    "StormGate-AuthService - OTP Service - Don't Reply" , otp , "verify");
 
             return ResponseEntity.ok(new RegisterResponse(token, "registered successfully"));
 
