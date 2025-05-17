@@ -22,12 +22,10 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@ModelAttribute RegisterRequest request) {
-        final RegisterResponse response = registerService.register(request);
-        return ResponseEntity.ok(response);
+        return  registerService.register(request);
     }
     @PostMapping("/verify")
     public ResponseEntity<VerifyOtpResponse> verify(@ModelAttribute VerifyOtpRequest request) {
-        final VerifyOtpResponse response = verifyService.verify(request);
-        return ResponseEntity.ok(response);
+        return verifyService.verify(request);
     }
 }

@@ -39,7 +39,6 @@ public class RefreshToken {
     @Column(nullable = false, length = 225)
     private String refreshToken;
 
-    @NotBlank
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     @Builder.Default
     private boolean is_revoked = false;
