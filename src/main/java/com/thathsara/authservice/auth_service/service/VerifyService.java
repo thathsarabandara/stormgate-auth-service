@@ -30,15 +30,15 @@ public class VerifyService {
     @Autowired private JwtUtil jwtUtil;
 
     @Transactional
-    public ResponseEntity<VerifyOtpResponse> verify(VerifyOtpRequest request) {
+    public ResponseEntity<VerifyOtpResponse> verify(String verifytoken ,VerifyOtpRequest request) {
         try {
-            if (request.getVerifyToken() == null || request.getOtp() == null) {
+            if (verifytoken == null || request.getOtp() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new VerifyOtpResponse(null, null, "Empty credentials provided."));
             }
 
             final VerificationToken token = verificationTokenRepository
-                    .findValidTokenByVerifyToken(request.getVerifyToken())
+                    .findValidTokenByVerifyToken(verifytoken)
                     .orElse(null);
 
             if (token == null) {

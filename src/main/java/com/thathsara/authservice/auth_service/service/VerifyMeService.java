@@ -27,9 +27,6 @@ public class VerifyMeService {
     @Transactional
     public ResponseEntity<AuthResponse> VerifyMe(String authToken, String refreshToken) {
         try {
-            System.out.println(authToken);
-            System.out.println(refreshToken);
-
             if (authToken == null && refreshToken == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(new AuthResponse(null, null, null, "No token provided"));
