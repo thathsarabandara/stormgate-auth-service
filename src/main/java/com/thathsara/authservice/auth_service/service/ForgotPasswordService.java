@@ -2,20 +2,27 @@ package com.thathsara.authservice.auth_service.service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.thathsara.authservice.auth_service.dto.ChangePasswordRequest;
+import com.thathsara.authservice.auth_service.dto.ChangePasswordResponse;
+import com.thathsara.authservice.auth_service.dto.ForgotPasswordRequest;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordResponse;
+import com.thathsara.authservice.auth_service.dto.ResetPasswordRequest;
+import com.thathsara.authservice.auth_service.dto.ResetPasswordResponse;
 import com.thathsara.authservice.auth_service.model.PasswordResetToken;
 import com.thathsara.authservice.auth_service.model.User;
+import com.thathsara.authservice.auth_service.model.UserPassword;
 import com.thathsara.authservice.auth_service.repository.PasswordResetTokenRepository;
+import com.thathsara.authservice.auth_service.repository.UserPasswordRepository;
 import com.thathsara.authservice.auth_service.repository.UserRepository;
 import com.thathsara.authservice.auth_service.util.JwtUtil;
 import com.thathsara.authservice.auth_service.util.OTPUtil;
+import com.thathsara.authservice.auth_service.util.PasswordUtils;
 
 import jakarta.transaction.Transactional;
 
@@ -23,14 +30,16 @@ import jakarta.transaction.Transactional;
 public class ForgotPasswordService {
 
     @Autowired private UserRepository userRepository;
+    @Autowired private UserPasswordRepository userPasswordRepository;
     @Autowired private PasswordResetTokenRepository passwordResetTokenRepository;
     @Autowired private MailService mailService;
+    @Autowired private PasswordUtils passwordUtils;
     @Autowired private JwtUtil jwtUtil;
 
     @Transactional
-    public ResponseEntity<ForgotPasswordResponse> forgotPassword(String email) {
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(ForgotPasswordRequest request) {
         try {
-            Optional<User> userOpt = userRepository.findByEmail(email);
+            Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -52,14 +61,15 @@ public class ForgotPasswordService {
             PasswordResetToken passwordResetToken = PasswordResetToken.builder()
                     .user(user)
                     .resetToken(resetToken)
-                    .otp(otp)
+                    .resetOtp(otp)
                     .expiredAt(LocalDateTime.now().plusMinutes(30))
                     .build();
 
             passwordResetTokenRepository.save(passwordResetToken);
 
             // Send Email with token + otp
-            emailService.sendForgotPasswordEmail(user.getEmail(), otp, resetToken);
+            mailService.sendOtpEmail(user.getEmail(), 
+            "StormGate-AuthService -Password Reset OTP Service - Don't Reply", otp, "password_reset");
 
             return ResponseEntity.ok(new ForgotPasswordResponse(resetToken ,"Reset token and OTP sent to your email."));
 
@@ -68,4 +78,95 @@ public class ForgotPasswordService {
                     .body(new ForgotPasswordResponse(null , "Failed to process password reset request."));
         }
     }
+    @Transactional
+    public ResponseEntity<ResetPasswordResponse> handleResetPasswordRequest(String resetToken, ResetPasswordRequest request) {
+        try {
+            // Check if reset token exists
+            Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByResetToken(resetToken);
+
+            if (tokenOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResetPasswordResponse(null, "Invalid or expired reset token."));
+            }
+
+            PasswordResetToken passwordResetToken = tokenOpt.get();
+            User user = passwordResetToken.getUser();
+
+            // Check if user is verified
+            if (!user.isVerified()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResetPasswordResponse(null, "User account is not verified."));
+            }
+
+            // Check if OTP matches
+            if (!passwordResetToken.getResetOtp().equals(request.getResetOTP())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ResetPasswordResponse(null, "Invalid OTP."));
+            }
+
+            // Mark OTP as verified
+            passwordResetToken.setOTPVerified(true);
+            passwordResetTokenRepository.save(passwordResetToken);
+
+            // Return response
+            return ResponseEntity.ok(new ResetPasswordResponse(resetToken, "OTP verified successfully. New reset token issued."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ResetPasswordResponse(null, "Failed to process reset password request."));
+        }
+    }
+    @Transactional
+    public ResponseEntity<ChangePasswordResponse> changePassword(String resetToken, ChangePasswordRequest request) {
+        try {
+            Optional<PasswordResetToken> tokenOpt = passwordResetTokenRepository.findByResetToken(resetToken);
+
+            if (tokenOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ChangePasswordResponse("Invalid or expired reset token."));
+            }
+
+            PasswordResetToken passwordResetToken = tokenOpt.get();
+
+            // Check if OTP was verified
+            if (!passwordResetToken.isOTPVerified()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ChangePasswordResponse("OTP has not been verified for this reset token."));
+            }
+
+            // Check if token has expired
+            if (passwordResetToken.getExpiredAt().isBefore(LocalDateTime.now())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(new ChangePasswordResponse("Reset token has expired."));
+            }
+
+            // All good — deactivate token, update password
+            passwordResetToken.setExpiredAt(LocalDateTime.now());
+
+            User user = passwordResetToken.getUser();
+            UserPassword oldPassword = userPasswordRepository.findTopByUserOrderByCreatedAtDesc(user);
+
+            oldPassword.setActive(false);
+            userPasswordRepository.save(oldPassword);
+
+            // Assuming you have PasswordEncoder bean injected
+            String encodedPassword = passwordUtils.hashedPassword(request.getNewPassword());
+            UserPassword newPassword = UserPassword.builder()
+                                        .password(encodedPassword)
+                                        .isActive(true)
+                                        .user(user)
+                                        .build();
+            userPasswordRepository.save(newPassword);
+
+            userRepository.save(user);
+            passwordResetTokenRepository.save(passwordResetToken);
+
+            return ResponseEntity.ok(new ChangePasswordResponse("Password updated successfully."));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ChangePasswordResponse("Failed to change password."));
+        }
+    }
+
 }

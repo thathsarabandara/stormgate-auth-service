@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thathsara.authservice.auth_service.dto.AuthResponse;
+import com.thathsara.authservice.auth_service.dto.ChangePasswordRequest;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordRequest;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordResponse;
 import com.thathsara.authservice.auth_service.dto.LogoutResponse;
@@ -65,5 +66,17 @@ public class AuthController {
     @PostMapping("/forgotpassword")
     public ResponseEntity<ForgotPasswordResponse> verify(@ModelAttribute ForgotPasswordRequest request) {
         return forgotPasswordService.forgotPassword(request);
+    }
+    @PostMapping("/resetpasswordotpverify")
+    public ResponseEntity<VerifyOtpResponse> verifyreset(
+        @RequestHeader(value = "Reset-Token", required = true) String resetToken,
+        @ModelAttribute VerifyOtpRequest request) {
+        return forgotPasswordService.handleResetPasswordRequest(resetToken, request);
+    }
+    @PostMapping("/changePassword")
+    public ResponseEntity<VerifyOtpResponse> changepassword(
+        @RequestHeader(value = "Reset-Token", required = true) String resetToken,
+        @ModelAttribute ChangePasswordRequest request) {
+        return forgotPasswordService.changePassword(resetToken, request);
     }
 }

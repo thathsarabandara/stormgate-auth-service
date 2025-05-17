@@ -41,7 +41,11 @@ public class PasswordResetToken {
 
     @NotBlank
     @Column(nullable = false, length = 10)
-    private String otp;
+    private String resetOtp;
+
+    @Column(nullable = false , columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Builder.Default
+    private boolean isOTPVerified = false;
 
     @Column(nullable = false)
     private LocalDateTime expiredAt;
