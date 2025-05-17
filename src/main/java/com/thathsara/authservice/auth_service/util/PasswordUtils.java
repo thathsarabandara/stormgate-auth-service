@@ -9,7 +9,7 @@ public class PasswordUtils {
         return passwordEncoder.encode(plainPassword);
     }
 
-    public static boolean verifyPassword(String plainPassword, String hashedPassword) {
+    public boolean verifyPassword(String plainPassword, String hashedPassword) {
         return passwordEncoder.matches(plainPassword, hashedPassword);
     }
 }
