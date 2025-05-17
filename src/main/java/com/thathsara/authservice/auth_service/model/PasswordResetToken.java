@@ -39,6 +39,10 @@ public class PasswordResetToken {
     @Column(nullable = false, length = 225)
     private String resetToken;
 
+    @NotBlank
+    @Column(nullable = false, length = 10)
+    private String otp;
+
     @Column(nullable = false)
     private LocalDateTime expiredAt;
 

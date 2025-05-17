@@ -61,7 +61,7 @@ public class ResendOtpService {
 
             // Send email
            emailService.sendOtpEmail(user.getEmail(),
-           "StormGate-AuthService - OTP Service - Don't Reply" , newOtp);
+           "StormGate-AuthService - OTP Service - Don't Reply" , newOtp, "password_reset");
 
             return ResponseEntity.ok(new OtpResendResponse(newToken , "OTP resent successfully."));
 
