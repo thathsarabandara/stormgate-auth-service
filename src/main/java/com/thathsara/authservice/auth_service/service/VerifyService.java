@@ -75,7 +75,7 @@ public class VerifyService {
             final RefreshToken refreshTokens = RefreshToken.builder()
                     .user(user)
                     .refreshToken(refreshToken)
-                    .is_revoked(false)
+                    .isRevoked(false)
                     .expiredAt(LocalDateTime.now().plusHours(3))
                     .build();
             refreshTokenRepository.save(refreshTokens);
