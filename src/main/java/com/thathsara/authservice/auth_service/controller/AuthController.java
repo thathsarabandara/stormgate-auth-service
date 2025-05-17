@@ -11,12 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.thathsara.authservice.auth_service.dto.AuthResponse;
 import com.thathsara.authservice.auth_service.dto.LogoutResponse;
+import com.thathsara.authservice.auth_service.dto.OtpResendResponse;
 import com.thathsara.authservice.auth_service.dto.RegisterRequest;
 import com.thathsara.authservice.auth_service.dto.RegisterResponse;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpRequest;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpResponse;
 import com.thathsara.authservice.auth_service.service.LogoutService;
 import com.thathsara.authservice.auth_service.service.RegisterService;
+import com.thathsara.authservice.auth_service.service.ResendOtpService;
 import com.thathsara.authservice.auth_service.service.VerifyMeService;
 import com.thathsara.authservice.auth_service.service.VerifyService;
 
@@ -27,6 +29,7 @@ public class AuthController {
     @Autowired private VerifyService verifyService;
     @Autowired private VerifyMeService verifyMeService;
     @Autowired private LogoutService logoutService;
+    @Autowired private ResendOtpService resendOtpService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@ModelAttribute RegisterRequest request) {
@@ -49,5 +52,10 @@ public class AuthController {
         @RequestHeader(value = "Authorization", required = false) String accessToken,
         @RequestHeader(value = "Refresh-Token", required = false) String refreshToken ){
         return logoutService.logout(accessToken, refreshToken);
+    }
+    @PostMapping("/resendotp")
+    public ResponseEntity<OtpResendResponse> resendotp(
+        @RequestHeader(value = "Verify-Token", required = false) String verifyToken){
+        return resendOtpService.resendOtp(verifyToken);
     } 
 }
