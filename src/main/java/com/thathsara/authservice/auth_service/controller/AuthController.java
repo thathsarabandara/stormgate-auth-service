@@ -10,12 +10,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thathsara.authservice.auth_service.dto.AuthResponse;
+import com.thathsara.authservice.auth_service.dto.ForgotPasswordRequest;
+import com.thathsara.authservice.auth_service.dto.ForgotPasswordResponse;
 import com.thathsara.authservice.auth_service.dto.LogoutResponse;
 import com.thathsara.authservice.auth_service.dto.OtpResendResponse;
 import com.thathsara.authservice.auth_service.dto.RegisterRequest;
 import com.thathsara.authservice.auth_service.dto.RegisterResponse;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpRequest;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpResponse;
+import com.thathsara.authservice.auth_service.service.ForgotPasswordService;
 import com.thathsara.authservice.auth_service.service.LogoutService;
 import com.thathsara.authservice.auth_service.service.RegisterService;
 import com.thathsara.authservice.auth_service.service.ResendOtpService;
@@ -30,6 +33,7 @@ public class AuthController {
     @Autowired private VerifyMeService verifyMeService;
     @Autowired private LogoutService logoutService;
     @Autowired private ResendOtpService resendOtpService;
+    @Autowired private ForgotPasswordService forgotPasswordService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@ModelAttribute RegisterRequest request) {
@@ -57,5 +61,9 @@ public class AuthController {
     public ResponseEntity<OtpResendResponse> resendotp(
         @RequestHeader(value = "Verify-Token", required = false) String verifyToken){
         return resendOtpService.resendOtp(verifyToken);
-    } 
+    }
+    @PostMapping("/forgotpassword")
+    public ResponseEntity<ForgotPasswordResponse> verify(@ModelAttribute ForgotPasswordRequest request) {
+        return forgotPasswordService.forgotPassword(request);
+    }
 }

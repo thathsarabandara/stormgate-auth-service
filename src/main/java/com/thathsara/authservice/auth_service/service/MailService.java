@@ -23,16 +23,13 @@ public class MailService {
             helper.setSubject(subject);
 
             switch (type) {
-                case "verify": {
+                case "verify" ->  {
                     helper.setText(buildOtpEmailHtml(otp), true);
-                    break;
                 }
-                case "password_reset": {
+                case "password_reset" ->  {
                     helper.setText(buildPasswordResetOTP(otp), true);
-                    break;
                 }
-                default:
-                    throw new IllegalArgumentException("Unsupported email type: " + type);
+                default -> throw new IllegalArgumentException("Unsupported email type: " + type);
             }
             mailSender.send(message);
 
