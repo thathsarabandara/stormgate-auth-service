@@ -48,7 +48,7 @@ public class LoginService {
 
             // Validate account status
             if (user.isVerified() == false || 
-            !user.getStatus().equals(User.STATUS.ACTIVE) || password.get().isActive() == true ) {
+            !user.getStatus().equals(User.STATUS.ACTIVE) || password.get().isActive() == false ) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(new LoginResponse(null, null, null, "Account not active or verified"));
             }

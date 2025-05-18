@@ -91,6 +91,8 @@ public class ForgotPasswordService {
             }
 
             final PasswordResetToken passwordResetToken = tokenOpt.get();
+            System.out.println(passwordResetToken);
+            System.out.println(request.getResetOTP());
             final User user = passwordResetToken.getUser();
 
             // Check if user is verified
