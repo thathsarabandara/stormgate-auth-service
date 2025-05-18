@@ -39,7 +39,7 @@ public class VerifyMeService {
                     final AuthToken validToken = authTokenOpt.get();
                     return ResponseEntity.ok(new AuthResponse(
                             validToken.getAuthToken(),
-                            null,
+                            refreshToken,
                             validToken.getUser().getId(),
                             "Authorized"
                     ));

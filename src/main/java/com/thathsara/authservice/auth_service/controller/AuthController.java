@@ -14,6 +14,8 @@ import com.thathsara.authservice.auth_service.dto.ChangePasswordRequest;
 import com.thathsara.authservice.auth_service.dto.ChangePasswordResponse;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordRequest;
 import com.thathsara.authservice.auth_service.dto.ForgotPasswordResponse;
+import com.thathsara.authservice.auth_service.dto.LoginRequest;
+import com.thathsara.authservice.auth_service.dto.LoginResponse;
 import com.thathsara.authservice.auth_service.dto.LogoutResponse;
 import com.thathsara.authservice.auth_service.dto.OtpResendResponse;
 import com.thathsara.authservice.auth_service.dto.RegisterRequest;
@@ -23,6 +25,7 @@ import com.thathsara.authservice.auth_service.dto.ResetPasswordResponse;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpRequest;
 import com.thathsara.authservice.auth_service.dto.VerifyOtpResponse;
 import com.thathsara.authservice.auth_service.service.ForgotPasswordService;
+import com.thathsara.authservice.auth_service.service.LoginService;
 import com.thathsara.authservice.auth_service.service.LogoutService;
 import com.thathsara.authservice.auth_service.service.RegisterService;
 import com.thathsara.authservice.auth_service.service.ResendOtpService;
@@ -38,12 +41,17 @@ public class AuthController {
     @Autowired private LogoutService logoutService;
     @Autowired private ResendOtpService resendOtpService;
     @Autowired private ForgotPasswordService forgotPasswordService;
+    @Autowired private LoginService loginService;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@ModelAttribute RegisterRequest request) {
         return  registerService.register(request);
     }
-    @PostMapping("/verify")
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@ModelAttribute LoginRequest request) {
+        return  loginService.login(request);
+    }
+    @PostMapping("/verify-registration-otp")
     public ResponseEntity<VerifyOtpResponse> verify(
         @RequestHeader(value = "Verify-Token", required = true) String verifyToken,
         @ModelAttribute VerifyOtpRequest request) {
@@ -61,22 +69,22 @@ public class AuthController {
         @RequestHeader(value = "Refresh-Token", required = false) String refreshToken ) {
         return logoutService.logout(accessToken, refreshToken);
     }
-    @PostMapping("/resendotp")
+    @PostMapping("/resend-registration-otp")
     public ResponseEntity<OtpResendResponse> resendotp(
         @RequestHeader(value = "Verify-Token", required = false) String verifyToken) {
         return resendOtpService.resendOtp(verifyToken);
     }
-    @PostMapping("/forgotpassword")
-    public ResponseEntity<ForgotPasswordResponse> verify(@ModelAttribute ForgotPasswordRequest request) {
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@ModelAttribute ForgotPasswordRequest request) {
         return forgotPasswordService.forgotPassword(request);
     }
-    @PostMapping("/resetpasswordotpverify")
+    @PostMapping("/verify-reset-password-otp")
     public ResponseEntity<ResetPasswordResponse> verifyreset(
         @RequestHeader(value = "Reset-Token", required = true) String resetToken,
         @ModelAttribute ResetPasswordRequest request) {
         return forgotPasswordService.handleResetPasswordRequest(resetToken, request);
     }
-    @PostMapping("/changePassword")
+    @PostMapping("/change-password")
     public ResponseEntity<ChangePasswordResponse> changepassword(
         @RequestHeader(value = "Reset-Token", required = true) String resetToken,
         @ModelAttribute ChangePasswordRequest request) {
