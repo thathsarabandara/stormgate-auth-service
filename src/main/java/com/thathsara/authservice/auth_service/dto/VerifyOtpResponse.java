@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
+public class VerifyOtpResponse {
     private String authToken;
     private String refreshToken;
-    private Long userId;
     private String message;
 }

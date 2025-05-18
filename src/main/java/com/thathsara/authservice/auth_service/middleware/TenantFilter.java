@@ -1,19 +1,25 @@
 package com.thathsara.authservice.auth_service.middleware;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thathsara.authservice.auth_service.util.TenantContext;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class TenantFilter extends OncePerRequestFilter {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -27,11 +33,11 @@ public class TenantFilter extends OncePerRequestFilter {
             try {
                 TenantContext.setTenantID(Long.valueOf(tenantHeader));
             } catch (NumberFormatException e) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Tenant-ID format");
+                sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid Tenant-ID format");
                 return;
             }
         } else {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Tenant-ID header missing");
+            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Tenant-ID header missing");
             return;
         }
 
@@ -40,5 +46,20 @@ public class TenantFilter extends OncePerRequestFilter {
         } finally {
             TenantContext.clear();
         }
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, int statusCode, String message) throws IOException {
+        response.setStatus(statusCode);
+        response.setContentType("application/json");
+
+        final Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", statusCode);
+        errorResponse.put("error", "Bad Request");
+        errorResponse.put("message", message);
+        errorResponse.put("timestamp", System.currentTimeMillis());
+
+        final PrintWriter writer = response.getWriter();
+        writer.write(objectMapper.writeValueAsString(errorResponse));
+        writer.flush();
     }
 }
