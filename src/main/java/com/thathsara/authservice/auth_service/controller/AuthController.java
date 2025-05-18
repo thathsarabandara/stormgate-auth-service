@@ -63,13 +63,13 @@ public class AuthController {
         @RequestHeader(value = "Refresh-Token", required = false) String refreshToken) {
         return verifyMeService.VerifyMe(accessToken, refreshToken);
     }
-    @PostMapping("/logout")
+    @GetMapping("/logout")
     public ResponseEntity<LogoutResponse> logout(
         @RequestHeader(value = "Authorization", required = false) String accessToken,
         @RequestHeader(value = "Refresh-Token", required = false) String refreshToken ) {
         return logoutService.logout(accessToken, refreshToken);
     }
-    @PostMapping("/resend-registration-otp")
+    @GetMapping("/resend-registration-otp")
     public ResponseEntity<OtpResendResponse> resendotp(
         @RequestHeader(value = "Verify-Token", required = false) String verifyToken) {
         return resendOtpService.resendOtp(verifyToken);
