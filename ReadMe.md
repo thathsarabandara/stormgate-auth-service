@@ -108,7 +108,7 @@ src/main/java/com/thathsara/authservice/auth_service/
 
 1. Clone the repository:
 ```
-git clone https://github.com/yourusername/auth-service.git
+git clone https://github.com/thathsarabandara/stormgate-auth-service.git
 cd auth-service
 ```
 
